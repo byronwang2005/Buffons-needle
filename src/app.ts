@@ -16,6 +16,8 @@ const decimalFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
 });
 
+const lastPulseAt = new WeakMap<HTMLElement, number>();
+
 function formatNullable(value: number | null): string {
   return value === null ? '—' : decimalFormatter.format(value);
 }
@@ -30,28 +32,80 @@ function byId<T extends HTMLElement>(id: string): T {
   return element as T;
 }
 
+function pulseElement(element: HTMLElement): void {
+  const now = globalThis.performance?.now() ?? Date.now();
+  const previousPulse = lastPulseAt.get(element) ?? Number.NEGATIVE_INFINITY;
+
+  if (now - previousPulse < 280) {
+    return;
+  }
+
+  lastPulseAt.set(element, now);
+  element.classList.remove('is-fresh');
+  void element.offsetWidth;
+  element.classList.add('is-fresh');
+}
+
+function setTextContent(element: HTMLElement, nextText: string, shouldPulse = false): void {
+  if (element.textContent === nextText) {
+    return;
+  }
+
+  element.textContent = nextText;
+
+  if (shouldPulse) {
+    pulseElement(element);
+  }
+}
+
 function renderState(state: SimulationState): void {
-  byId<HTMLElement>('total-throws').textContent = integerFormatter.format(state.totalThrows);
-  byId<HTMLElement>('intersection-count').textContent = integerFormatter.format(
-    state.intersectionCount,
-  );
-  byId<HTMLElement>('experimental-probability').textContent = formatNullable(
-    state.stats.experimentalProbability,
-  );
-  byId<HTMLElement>('theoretical-probability').textContent = `2 / π ≈ ${decimalFormatter.format(
+  const totalThrowsLabel = integerFormatter.format(state.totalThrows);
+  const intersectionLabel = integerFormatter.format(state.intersectionCount);
+  const experimentalProbabilityLabel = formatNullable(state.stats.experimentalProbability);
+  const theoreticalProbabilityLabel = `2 / π ≈ ${decimalFormatter.format(
     THEORETICAL_PROBABILITY,
   )}`;
-  byId<HTMLElement>('pi-estimate').textContent = formatNullable(state.stats.piEstimate);
-  byId<HTMLElement>('auto-indicator').textContent = state.isAutoRunning ? 'Running' : 'Paused';
-  byId<HTMLButtonElement>('toggle-auto-button').textContent = state.isAutoRunning
-    ? 'Pause'
-    : 'Auto Run';
-  byId<HTMLElement>('estimate-note').textContent =
-    state.stats.piEstimate === null
-      ? 'π appears after the first intersection.'
-      : `Updated live from ${integerFormatter.format(state.totalThrows)} throws and ${integerFormatter.format(
-          state.intersectionCount,
-        )} hits.`;
+  const piEstimateLabel = formatNullable(state.stats.piEstimate);
+  const autoState = state.isAutoRunning ? 'running' : 'paused';
+
+  setTextContent(
+    byId<HTMLElement>('total-throws'),
+    totalThrowsLabel,
+    state.totalThrows > 0,
+  );
+  setTextContent(
+    byId<HTMLElement>('intersection-count'),
+    intersectionLabel,
+    state.totalThrows > 0,
+  );
+  setTextContent(
+    byId<HTMLElement>('experimental-probability'),
+    experimentalProbabilityLabel,
+    state.stats.experimentalProbability !== null,
+  );
+  setTextContent(byId<HTMLElement>('theoretical-probability'), theoreticalProbabilityLabel);
+  setTextContent(
+    byId<HTMLElement>('pi-estimate'),
+    piEstimateLabel,
+    state.stats.piEstimate !== null,
+  );
+
+  const autoIndicator = byId<HTMLElement>('auto-indicator');
+  setTextContent(autoIndicator, state.isAutoRunning ? 'Running' : 'Paused');
+  autoIndicator.dataset.state = autoState;
+
+  const toggleAutoButton = byId<HTMLButtonElement>('toggle-auto-button');
+  setTextContent(toggleAutoButton, state.isAutoRunning ? 'Pause' : 'Auto Run');
+  toggleAutoButton.dataset.state = autoState;
+  toggleAutoButton.setAttribute('aria-pressed', String(state.isAutoRunning));
+
+  const estimateNote = document.getElementById('estimate-note');
+  if (estimateNote) {
+    setTextContent(estimateNote, '');
+    estimateNote.dataset.state = state.stats.piEstimate === null ? 'idle' : 'live';
+  }
+
+  document.body.dataset.autoState = autoState;
 }
 
 export function mountBuffonApp(options: AppOptions = {}): BuffonController {

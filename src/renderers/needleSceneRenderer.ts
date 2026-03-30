@@ -59,6 +59,9 @@ export class NeedleSceneRenderer implements NeedleSink {
     });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     this.renderer.setClearAlpha(0);
+    this.renderer.domElement.style.display = 'block';
+    this.renderer.domElement.style.width = '100%';
+    this.renderer.domElement.style.height = '100%';
     this.container.appendChild(this.renderer.domElement);
 
     this.linesMaterial = new THREE.LineBasicMaterial({

@@ -15,6 +15,12 @@
   <body>
     <div class="page-shell">
       <header class="hero">
+        <div class="hero-copy">
+          <h1>Buffon’s Needle, in motion.</h1>
+          <p class="hero-text">
+            Drop, run, reset, and watch the estimate of π settle in real time.
+          </p>
+        </div>
         <div class="hero-topbar">
           <img
             class="hero-logo"
@@ -22,72 +28,92 @@
             alt="School logo"
           />
         </div>
-        <div class="hero-copy">
-          <h1>Buffon’s Needle, in motion.</h1>
-          <p class="hero-text">
-            Drop, run, reset, and watch the estimate of π settle in real time.
-          </p>
-          <div class="hero-formulas">
-            <div class="formula-row">
-              <span class="formula-title">Intersection rule</span>
-              <code>x ≤ (l / 2) sin θ</code>
-            </div>
-            <div class="formula-row">
-              <span class="formula-title">Theory</span>
-              <code>P = 2l / (πd), for l ≤ d</code>
-            </div>
-            <div class="formula-row">
-              <span class="formula-title">Estimator</span>
-              <code>π ≈ 2N / C</code>
-            </div>
+        <div class="hero-formulas" aria-label="Key Buffon formulas">
+          <div class="formula-row">
+            <span class="formula-title">Intersection rule</span>
+            <code>x ≤ (l / 2) sin θ</code>
+          </div>
+          <div class="formula-row">
+            <span class="formula-title">Theory</span>
+            <code>P = 2l / (πd), for l ≤ d</code>
+          </div>
+          <div class="formula-row">
+            <span class="formula-title">Estimator</span>
+            <code>π ≈ 2N / C</code>
           </div>
         </div>
       </header>
 
       <main class="experience">
-        <section class="stage-panel">
-          <div class="panel-head">
+        <section class="panel stage-panel">
+          <div class="panel-head stage-head">
             <div>
+              <span class="formula-title">Live stage</span>
               <h2>Needles keep falling. Statistics stay exact.</h2>
             </div>
-            <p class="panel-detail">
-              The stage keeps a visible cap for rendering so auto-run stays fast
-              on modest hardware, while the totals continue counting every throw.
-            </p>
           </div>
-          <div id="simulation-stage" class="simulation-stage" aria-label="Buffon needle simulation canvas"></div>
+          <div
+            id="simulation-stage"
+            class="simulation-stage"
+            aria-label="Buffon needle simulation canvas"
+          ></div>
           <div class="stage-footer">
             <span>Bright needles intersect a line.</span>
-            <span>Muted needles miss.</span>
+            <span>Muted needles miss and keep the estimate honest.</span>
           </div>
         </section>
 
-        <aside class="info-rail">
-          <section class="panel controls-panel">
-            <div class="panel-head compact">
+        <aside class="panel info-rail">
+          <section class="rail-section controls-panel">
+            <div class="panel-head compact controls-head">
               <div>
+                <span class="formula-title">Controls</span>
                 <h2>Run the experiment</h2>
               </div>
-              <div id="auto-indicator" class="status-chip">Paused</div>
+              <div
+                id="auto-indicator"
+                class="status-chip"
+                data-state="paused"
+              >
+                Paused
+              </div>
             </div>
             <div class="button-grid">
-              <button id="reset-button" class="ghost-button" type="button">Reset</button>
-              <button id="drop-one-button" class="solid-button" type="button">Drop 1</button>
-              <button id="drop-hundred-button" class="solid-button alt" type="button">Drop 100</button>
-              <button id="toggle-auto-button" class="accent-button" type="button">Auto Run</button>
+              <button id="reset-button" class="ghost-button" type="button">
+                Reset
+              </button>
+              <button id="drop-one-button" class="solid-button" type="button">
+                Drop 1
+              </button>
+              <button
+                id="drop-hundred-button"
+                class="solid-button alt"
+                type="button"
+              >
+                Drop 100
+              </button>
+              <button
+                id="toggle-auto-button"
+                class="accent-button"
+                type="button"
+                data-state="paused"
+              >
+                Auto Run
+              </button>
             </div>
             <p class="panel-note">
-              Setup: <strong>l = d = 1</strong>. The stage shows recent needles,
-              while the statistics count every throw.
+              Setup: <strong>l = d = 1</strong>. Recent needles stay on stage;
+              totals count every throw.
             </p>
           </section>
 
-          <section class="panel stats-panel">
-            <div class="panel-head compact">
-              <div>
-                <h2>Results</h2>
-              </div>
-            </div>
+          <section class="rail-section stats-panel">
+            <p
+              id="estimate-note"
+              class="panel-note inline-note sr-only"
+              data-state="idle"
+              aria-hidden="true"
+            ></p>
             <dl class="stats-grid">
               <div>
                 <dt>Total throws N</dt>
@@ -110,25 +136,29 @@
                 <dd id="pi-estimate">—</dd>
               </div>
             </dl>
-            <p id="estimate-note" class="panel-note">
-              π becomes available after the first intersection.
-            </p>
-            <div class="results-plot">
-              <div class="results-plot-head">
-                <h3>Estimated π over throws</h3>
-                <div class="legend">
-                  <span class="legend-item"><i class="legend-line estimate"></i>Estimated π</span>
-                  <span class="legend-item"><i class="legend-line truth"></i>True π</span>
-                </div>
-              </div>
-              <canvas
-                id="convergence-plot"
-                class="plot-canvas"
-                aria-label="Convergence plot of estimated pi"
-              ></canvas>
-            </div>
           </section>
 
+          <section class="rail-section plot-panel results-plot">
+            <div class="results-plot-head">
+              <div>
+                <span class="formula-title">Convergence</span>
+                <h3>Estimated π over throws</h3>
+              </div>
+              <div class="legend">
+                <span class="legend-item">
+                  <i class="legend-line estimate"></i>Estimated π
+                </span>
+                <span class="legend-item">
+                  <i class="legend-line truth"></i>True π
+                </span>
+              </div>
+            </div>
+            <canvas
+              id="convergence-plot"
+              class="plot-canvas"
+              aria-label="Convergence plot of estimated pi"
+            ></canvas>
+          </section>
         </aside>
       </main>
     </div>

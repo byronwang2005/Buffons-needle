@@ -135,14 +135,20 @@ describe('app wiring', () => {
 
     autoButton.click();
     expect(autoButton.textContent).toBe('Pause');
+    expect(autoButton.getAttribute('aria-pressed')).toBe('true');
+    expect(autoButton.dataset.state).toBe('running');
     expect(document.getElementById('auto-indicator')?.textContent).toBe('Running');
+    expect(document.getElementById('auto-indicator')?.dataset.state).toBe('running');
 
     scheduler.step(5);
     expect(Number(document.getElementById('total-throws')?.textContent)).toBeGreaterThan(0);
 
     autoButton.click();
     expect(autoButton.textContent).toBe('Auto Run');
+    expect(autoButton.getAttribute('aria-pressed')).toBe('false');
+    expect(autoButton.dataset.state).toBe('paused');
     expect(document.getElementById('auto-indicator')?.textContent).toBe('Paused');
+    expect(document.getElementById('auto-indicator')?.dataset.state).toBe('paused');
 
     resetButton.click();
     expect(document.getElementById('total-throws')?.textContent).toBe('0');
