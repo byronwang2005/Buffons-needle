@@ -1,0 +1,131 @@
+import type { PlotSample, StatsSnapshot, ThrowResult, WorldBounds } from './types';
+
+export const LINE_SPACING = 1;
+export const NEEDLE_LENGTH = 1;
+export const HALF_NEEDLE = NEEDLE_LENGTH / 2;
+export const THEORETICAL_PROBABILITY = 2 / Math.PI;
+
+const EPSILON = 1e-9;
+const MAX_PLOT_SAMPLES = 2400;
+
+export function distanceToNearestLine(y: number, lineSpacing = LINE_SPACING): number {
+  const nearestLine = Math.round(y / lineSpacing) * lineSpacing;
+  return Math.abs(y - nearestLine);
+}
+
+export function computeNeedleEndpoints(
+  x: number,
+  y: number,
+  angle: number,
+  length = NEEDLE_LENGTH,
+): ThrowResult['endpoints'] {
+  const halfLength = length / 2;
+  const dx = Math.cos(angle) * halfLength;
+  const dy = Math.sin(angle) * halfLength;
+
+  return {
+    start: { x: x - dx, y: y - dy },
+    end: { x: x + dx, y: y + dy },
+  };
+}
+
+export function doesNeedleIntersect(
+  y: number,
+  angle: number,
+  length = NEEDLE_LENGTH,
+  lineSpacing = LINE_SPACING,
+): boolean {
+  const distance = distanceToNearestLine(y, lineSpacing);
+  const reach = (length / 2) * Math.abs(Math.sin(angle));
+  return distance <= reach + EPSILON;
+}
+
+export function createThrowResult(
+  id: number,
+  bounds: WorldBounds,
+  rng: () => number = Math.random,
+): ThrowResult {
+  const x = bounds.left + rng() * (bounds.right - bounds.left);
+  const y = bounds.bottom + rng() * (bounds.top - bounds.bottom);
+  const angle = rng() * Math.PI;
+  const intersects = doesNeedleIntersect(y, angle);
+
+  return {
+    id,
+    midpoint: { x, y },
+    angle,
+    intersects,
+    nearestLineDistance: distanceToNearestLine(y),
+    endpoints: computeNeedleEndpoints(x, y, angle),
+  };
+}
+
+export function buildStats(totalThrows: number, intersectionCount: number): StatsSnapshot {
+  const experimentalProbability =
+    totalThrows > 0 ? intersectionCount / totalThrows : null;
+  const piEstimate = intersectionCount > 0 ? (2 * totalThrows) / intersectionCount : null;
+
+  return {
+    totalThrows,
+    intersectionCount,
+    experimentalProbability,
+    theoreticalProbability: THEORETICAL_PROBABILITY,
+    piEstimate,
+  };
+}
+
+function sampleStrideForThrow(throwCount: number): number {
+  if (throwCount < 250) {
+    return 1;
+  }
+
+  if (throwCount < 1_000) {
+    return 5;
+  }
+
+  if (throwCount < 5_000) {
+    return 20;
+  }
+
+  if (throwCount < 20_000) {
+    return 50;
+  }
+
+  return 200;
+}
+
+export function shouldRecordSample(
+  throwCount: number,
+  lastRecordedThrowCount: number,
+): boolean {
+  return throwCount - lastRecordedThrowCount >= sampleStrideForThrow(throwCount);
+}
+
+export function maybeCreatePlotSample(
+  totalThrows: number,
+  intersectionCount: number,
+  lastRecordedThrowCount: number,
+): PlotSample | null {
+  if (intersectionCount === 0) {
+    return null;
+  }
+
+  if (!shouldRecordSample(totalThrows, lastRecordedThrowCount)) {
+    return null;
+  }
+
+  return {
+    throwCount: totalThrows,
+    piEstimate: (2 * totalThrows) / intersectionCount,
+  };
+}
+
+export function appendPlotSample(samples: PlotSample[], sample: PlotSample): PlotSample[] {
+  const nextSamples = [...samples, sample];
+
+  if (nextSamples.length <= MAX_PLOT_SAMPLES) {
+    return nextSamples;
+  }
+
+  return nextSamples.filter((_, index) => index % 2 === 0);
+}
