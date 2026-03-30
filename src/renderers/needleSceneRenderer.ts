@@ -4,6 +4,8 @@ import type { NeedleSink, ThrowResult, WorldBounds } from '../types';
 
 const MISS_COLOR = new THREE.Color('#6c7f93');
 const HIT_COLOR = new THREE.Color('#f4b35f');
+const MIN_ZOOM_LEVEL = 0.5;
+const MAX_ZOOM_LEVEL = 8;
 
 export interface NeedleSceneRendererOptions {
   visibleCap?: number;
@@ -38,7 +40,19 @@ export class NeedleSceneRenderer implements NeedleSink {
 
   private readonly resizeObserver: ResizeObserver;
 
-  private worldHeight = 8;
+  private readonly baseWorldHeight = 8;
+
+  private readonly viewCenter = new THREE.Vector2(0, 0);
+
+  private readonly dragStartCenter = new THREE.Vector2(0, 0);
+
+  private zoomLevel = 1;
+
+  private dragPointerId: number | null = null;
+
+  private dragStartClientX = 0;
+
+  private dragStartClientY = 0;
 
   private visibleCount = 0;
 
@@ -62,7 +76,9 @@ export class NeedleSceneRenderer implements NeedleSink {
     this.renderer.domElement.style.display = 'block';
     this.renderer.domElement.style.width = '100%';
     this.renderer.domElement.style.height = '100%';
+    this.renderer.domElement.style.touchAction = 'none';
     this.container.appendChild(this.renderer.domElement);
+    this.container.classList.add('is-draggable');
 
     this.linesMaterial = new THREE.LineBasicMaterial({
       color: '#304358',
@@ -96,6 +112,15 @@ export class NeedleSceneRenderer implements NeedleSink {
       this.resize();
     });
     this.resizeObserver.observe(this.container);
+    this.renderer.domElement.addEventListener('pointerdown', this.handlePointerDown);
+    this.renderer.domElement.addEventListener('pointermove', this.handlePointerMove);
+    this.renderer.domElement.addEventListener('pointerup', this.handlePointerUp);
+    this.renderer.domElement.addEventListener('pointercancel', this.handlePointerUp);
+    this.renderer.domElement.addEventListener(
+      'wheel',
+      this.handleWheel,
+      { passive: false },
+    );
 
     this.resize();
   }
@@ -152,6 +177,11 @@ export class NeedleSceneRenderer implements NeedleSink {
 
   dispose(): void {
     this.resizeObserver.disconnect();
+    this.renderer.domElement.removeEventListener('pointerdown', this.handlePointerDown);
+    this.renderer.domElement.removeEventListener('pointermove', this.handlePointerMove);
+    this.renderer.domElement.removeEventListener('pointerup', this.handlePointerUp);
+    this.renderer.domElement.removeEventListener('pointercancel', this.handlePointerUp);
+    this.renderer.domElement.removeEventListener('wheel', this.handleWheel);
     this.linesGeometry.dispose();
     this.linesMaterial.dispose();
     this.needlesGeometry.dispose();
@@ -162,17 +192,112 @@ export class NeedleSceneRenderer implements NeedleSink {
   private resize(): void {
     const width = Math.max(1, this.container.clientWidth);
     const height = Math.max(1, this.container.clientHeight);
-    const aspect = width / height;
 
-    this.camera.top = this.worldHeight / 2;
-    this.camera.bottom = -this.worldHeight / 2;
-    this.camera.left = -(this.worldHeight * aspect) / 2;
-    this.camera.right = (this.worldHeight * aspect) / 2;
-    this.camera.updateProjectionMatrix();
-
+    this.updateProjection(width, height);
     this.renderer.setSize(width, height, false);
     this.rebuildLines();
     this.render();
+  }
+
+  private updateProjection(width: number, height: number): void {
+    const aspect = width / height;
+    const visibleWorldHeight = this.baseWorldHeight / this.zoomLevel;
+    const halfHeight = visibleWorldHeight / 2;
+    const halfWidth = halfHeight * aspect;
+
+    this.camera.top = this.viewCenter.y + halfHeight;
+    this.camera.bottom = this.viewCenter.y - halfHeight;
+    this.camera.left = this.viewCenter.x - halfWidth;
+    this.camera.right = this.viewCenter.x + halfWidth;
+    this.camera.updateProjectionMatrix();
+  }
+
+  private readonly handlePointerDown = (event: PointerEvent): void => {
+    if (event.button !== 0 || this.dragPointerId !== null) {
+      return;
+    }
+
+    event.preventDefault();
+    this.dragPointerId = event.pointerId;
+    this.dragStartClientX = event.clientX;
+    this.dragStartClientY = event.clientY;
+    this.dragStartCenter.copy(this.viewCenter);
+    this.container.classList.add('is-dragging');
+    this.renderer.domElement.setPointerCapture(event.pointerId);
+  };
+
+  private readonly handlePointerMove = (event: PointerEvent): void => {
+    if (event.pointerId !== this.dragPointerId) {
+      return;
+    }
+
+    const width = Math.max(1, this.container.clientWidth);
+    const height = Math.max(1, this.container.clientHeight);
+    const worldWidth = this.camera.right - this.camera.left;
+    const worldHeight = this.camera.top - this.camera.bottom;
+    const deltaX = event.clientX - this.dragStartClientX;
+    const deltaY = event.clientY - this.dragStartClientY;
+
+    this.viewCenter.x = this.dragStartCenter.x - (deltaX / width) * worldWidth;
+    this.viewCenter.y = this.dragStartCenter.y + (deltaY / height) * worldHeight;
+    this.updateProjection(width, height);
+    this.rebuildLines();
+    this.render();
+  };
+
+  private readonly handlePointerUp = (event: PointerEvent): void => {
+    if (event.pointerId !== this.dragPointerId) {
+      return;
+    }
+
+    if (this.renderer.domElement.hasPointerCapture(event.pointerId)) {
+      this.renderer.domElement.releasePointerCapture(event.pointerId);
+    }
+
+    this.dragPointerId = null;
+    this.container.classList.remove('is-dragging');
+  };
+
+  private readonly handleWheel = (event: WheelEvent): void => {
+    event.preventDefault();
+
+    const width = Math.max(1, this.container.clientWidth);
+    const height = Math.max(1, this.container.clientHeight);
+    const rect = this.container.getBoundingClientRect();
+    const beforeZoomPoint = this.screenPointToWorld(event.clientX, event.clientY, rect);
+    const zoomFactor = Math.exp(-event.deltaY * 0.0015);
+    const nextZoom = THREE.MathUtils.clamp(
+      this.zoomLevel * zoomFactor,
+      MIN_ZOOM_LEVEL,
+      MAX_ZOOM_LEVEL,
+    );
+
+    if (Math.abs(nextZoom - this.zoomLevel) < 1e-4) {
+      return;
+    }
+
+    this.zoomLevel = nextZoom;
+    this.updateProjection(width, height);
+    const afterZoomPoint = this.screenPointToWorld(event.clientX, event.clientY, rect);
+
+    this.viewCenter.x += beforeZoomPoint.x - afterZoomPoint.x;
+    this.viewCenter.y += beforeZoomPoint.y - afterZoomPoint.y;
+    this.updateProjection(width, height);
+    this.rebuildLines();
+    this.render();
+  };
+
+  private screenPointToWorld(
+    clientX: number,
+    clientY: number,
+    rect: DOMRect,
+  ): THREE.Vector2 {
+    const normalizedX = (clientX - rect.left) / Math.max(rect.width, 1);
+    const normalizedY = (clientY - rect.top) / Math.max(rect.height, 1);
+    const worldX = this.camera.left + normalizedX * (this.camera.right - this.camera.left);
+    const worldY = this.camera.top - normalizedY * (this.camera.top - this.camera.bottom);
+
+    return new THREE.Vector2(worldX, worldY);
   }
 
   private rebuildLines(): void {

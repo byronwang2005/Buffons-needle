@@ -239,6 +239,9 @@ select {
   min-height: var(--stage-height);
   border-radius: 20px;
   overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
   background:
     linear-gradient(180deg, rgba(14, 22, 37, 0.9), rgba(7, 12, 21, 0.96)),
     radial-gradient(circle at 20% 10%, rgba(130, 240, 210, 0.12), transparent 22%);
@@ -253,6 +256,10 @@ select {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.simulation-stage.is-dragging {
+  cursor: grabbing;
 }
 
 body[data-auto-state='running'] .simulation-stage {
