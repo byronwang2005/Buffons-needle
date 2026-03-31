@@ -117,7 +117,7 @@ select {
 }
 
 .hero-copy h1 {
-  font-size: clamp(1.9rem, 3vw, 2.8rem);
+  font-size: clamp(1.72rem, 2.65vw, 2.45rem);
   line-height: 0.94;
   max-width: 12ch;
 }
@@ -575,7 +575,7 @@ body[data-auto-state='running'] .stats-grid dd {
   }
 
   .hero-copy h1 {
-    font-size: clamp(1.72rem, 2.6vw, 2.35rem);
+    font-size: clamp(1.58rem, 2.3vw, 2.08rem);
   }
 
   .hero-text {
@@ -707,7 +707,7 @@ body[data-auto-state='running'] .stats-grid dd {
   }
 
   .hero-copy h1 {
-    font-size: clamp(1.7rem, 11vw, 2.3rem);
+    font-size: clamp(1.52rem, 9.6vw, 2rem);
   }
 
   .hero-logo {

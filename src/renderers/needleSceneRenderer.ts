@@ -86,6 +86,7 @@ export class NeedleSceneRenderer implements NeedleSink {
       opacity: 0.95,
     });
     this.lines.material = this.linesMaterial;
+    this.lines.frustumCulled = false;
     this.scene.add(this.lines);
 
     this.needlePositions = new Float32Array(this.visibleCap * 2 * 3);
@@ -106,6 +107,8 @@ export class NeedleSceneRenderer implements NeedleSink {
       opacity: 0.9,
     });
     this.needles = new THREE.LineSegments(this.needlesGeometry, this.needleMaterial);
+    // The segment buffers are mutated in place, so cached bounds can go stale during pan/zoom.
+    this.needles.frustumCulled = false;
     this.scene.add(this.needles);
 
     this.resizeObserver = new ResizeObserver(() => {
