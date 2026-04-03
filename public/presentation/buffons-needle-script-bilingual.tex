@@ -1,0 +1,278 @@
+% Compile with XeLaTeX in MiKTeX.
+% Force Fandol to avoid missing macOS system fonts such as STHeiti.
+\documentclass[11pt,a4paper,fontset=fandol]{ctexart}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{parskip}
+
+\definecolor{titlecolor}{HTML}{0A111E}
+\definecolor{accent}{HTML}{0F766E}
+\definecolor{cueborder}{HTML}{2F4858}
+\definecolor{cuebg}{HTML}{EEF6F5}
+\definecolor{textmuted}{HTML}{475569}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accent,
+  urlcolor=accent
+}
+
+\setlength{\parindent}{0pt}
+\pagestyle{plain}
+
+\newcommand{\SlideHeader}[4]{%
+  \clearpage
+  \section*{Slide #1: #2}
+  {\large \textbf{Speaker:} #3 \hfill \textbf{Suggested time:} #4}
+  \par\medskip
+  \hrule
+  \medskip
+}
+
+\newcommand{\EnglishBlock}[1]{%
+  {\color{titlecolor}\textbf{English}}\par
+  #1
+  \par\medskip
+}
+
+\newcommand{\ChineseBlock}[1]{%
+  {\color{titlecolor}\textbf{中文}}\par
+  #1
+  \par
+}
+
+\newcommand{\TurnCue}[1]{%
+  \par\medskip
+  \fcolorbox{cueborder}{cuebg}{%
+    \parbox{0.95\linewidth}{%
+      \textbf{翻页时机 / Slide cue:} #1
+    }%
+  }
+}
+
+\begin{document}
+
+\SlideHeader{1}{Title}{Enci XU}{5--8 seconds}
+
+\EnglishBlock{
+Hi everyone. Today we will introduce Buffon's Needle.
+}
+
+\ChineseBlock{
+大家好，今天我们介绍 Buffon's Needle。
+}
+
+\vfill
+\TurnCue{讲完这句问好后，直接翻到下一张 Outline。}
+
+\SlideHeader{2}{Outline}{Enci XU}{8--12 seconds}
+
+\EnglishBlock{
+We will first introduce the background and the basic setup of the problem, then explain why pi appears here, then show the simulation and a simple extension, and finally move to the web demo.
+}
+
+\ChineseBlock{
+我们会先介绍这个问题的背景和基本设定，再说明为什么这里会出现 pi，然后展示模拟结果和一个简单推广，最后进入网页 demo。
+}
+
+\vfill
+\TurnCue{讲完 ``the web demo'' 后翻到 ``A Simple Puzzle with a Big Idea''。}
+
+\SlideHeader{3}{A Simple Puzzle with a Big Idea}{Enci XU}{30--35 seconds}
+
+\EnglishBlock{
+This problem was first posed by the French mathematician Buffon in the eighteenth century. Its importance is not only that the puzzle itself is interesting, but also that it shows something deeper: random experiments do not only produce messy outcomes. If we repeat them enough times, randomness itself can help us measure a very stable mathematical constant, namely pi.
+
+Historically, it is an early example of geometric probability. From a modern point of view, it also looks like a precursor to the Monte Carlo method. In other words, instead of calculating a difficult quantity directly, we approximate it by many random trials.
+}
+
+\ChineseBlock{
+这个问题最早由十八世纪法国数学家 Buffon 提出。它的重要性不只是题目本身有趣，而是它说明了一件很深刻的事：随机实验不一定只能产生杂乱结果，相反，如果我们重复足够多次，随机性本身就可以帮助我们测量一个非常稳定的数学常数，也就是 pi。
+
+从数学史的角度看，它是几何概率的早期例子；从现代角度看，它又很像 Monte Carlo 方法的前身。也就是说，我们不是直接去算一个复杂的量，而是通过大量随机试验去逼近它。
+}
+
+\vfill
+\TurnCue{讲完 ``many random trials'' 后翻到 ``Setup and Crossing Rule''。}
+
+\SlideHeader{4}{Setup and Crossing Rule}{}{35--40 seconds}
+
+\EnglishBlock{
+Now let us look at the experiment itself. We draw a family of parallel lines on the plane, let the distance between neighbouring lines be $d$, and then drop a needle of length $l$ at random. Here we only consider the case $l \le d$.
+
+To decide whether the needle crosses a line, we only need two quantities. The first is the angle between the needle and the lines, which we call $\theta$. The second is the distance from the midpoint of the needle to the nearest line, which we call $x$.
+
+If the needle's half projected length in the vertical direction is larger than this distance, that is, if
+\[
+x \le \frac{l}{2}\sin\theta,
+\]
+then the needle crosses a line. This condition is the key step because it turns a geometry question into something we can sample randomly.
+}
+
+\ChineseBlock{
+现在看这个实验本身。我们在平面上画一组平行线，相邻两条线之间的距离记作 $d$，再把一根长度为 $l$ 的针随机扔下去，这里我们只考虑 $l \le d$ 的情况。
+
+要判断这根针会不会碰到某条线，只需要看两个量。第一个是针和这些平行线之间的夹角，记作 $\theta$；第二个是针的中点到最近一条线的距离，记作 $x$。
+
+如果针在垂直方向上的半投影长度大于这个距离，也就是满足
+\[
+x \le \frac{l}{2}\sin\theta,
+\]
+那么这根针就会和某条线相交。这个条件非常关键，因为它把一个几何图形问题变成了一个可以随机采样的问题。
+}
+
+\vfill
+\TurnCue{讲完 ``sample randomly'' 后翻到 ``Theory: Sample Space and Favourable Region''。}
+
+\SlideHeader{5}{Theory: Sample Space and Favourable Region}{}{35--40 seconds}
+
+\EnglishBlock{
+Now I will explain why this probability is connected to pi. To make the calculation cleaner, we use symmetry and only look at
+\[
+x \in \left[0,\frac{d}{2}\right], \qquad \theta \in \left[0,\frac{\pi}{2}\right].
+\]
+Then the whole sample space is a rectangle with area
+\[
+A_{\text{total}}=\frac{d}{2}\cdot\frac{\pi}{2}=\frac{\pi d}{4}.
+\]
+
+The crossing condition is still
+\[
+x \le \frac{l}{2}\sin\theta.
+\]
+So for each fixed angle $\theta$, the allowed values of $x$ go from $0$ up to $\frac{l}{2}\sin\theta$. Putting all these together gives the favourable region that we integrate over.
+}
+
+\ChineseBlock{
+接下来我来解释这个概率为什么会和 pi 联系起来。为了让计算更简洁，我们利用对称性，只看
+\[
+x \in \left[0,\frac{d}{2}\right], \qquad \theta \in \left[0,\frac{\pi}{2}\right].
+\]
+这样整个样本空间就是一个长方形，它的面积是
+\[
+A_{\text{total}}=\frac{d}{2}\cdot\frac{\pi}{2}=\frac{\pi d}{4}.
+\]
+
+而针与平行线相交的条件仍然是
+\[
+x \le \frac{l}{2}\sin\theta.
+\]
+所以对于每一个固定角度 $\theta$，能够发生相交的 $x$ 的范围是从 $0$ 到 $\frac{l}{2}\sin\theta$。把这些允许区域拼起来，就得到我们要积分的有利区域。
+}
+
+\vfill
+\TurnCue{讲完 ``the favourable region that we integrate over'' 后翻到 ``Theory: Why $\pi$ Appears''。}
+
+\SlideHeader{6}{Theory: Why \texorpdfstring{$\pi$}{pi} Appears}{}{35--40 seconds}
+
+\EnglishBlock{
+Now we evaluate the favourable region:
+\[
+A_{\text{fav}}
+=
+\int_0^{\pi/2}\int_0^{(l/2)\sin\theta} dx\,d\theta
+=
+\int_0^{\pi/2}\frac{l}{2}\sin\theta\,d\theta
+=
+\frac{l}{2}.
+\]
+So the crossing probability is the favourable area divided by the total area:
+\[
+P(\text{cross})
+=
+\frac{A_{\text{fav}}}{A_{\text{total}}}
+=
+\frac{l/2}{\pi d/4}
+=
+\frac{2l}{\pi d}.
+\]
+In our demo we take $l=d=1$, so we get $P(\text{cross})=2/\pi$. This is why pi appears naturally in what seems to be just a needle-dropping problem.
+}
+
+\ChineseBlock{
+现在我们对这个有利区域积分：
+\[
+A_{\text{fav}}
+=
+\int_0^{\pi/2}\int_0^{(l/2)\sin\theta} dx\,d\theta
+=
+\int_0^{\pi/2}\frac{l}{2}\sin\theta\,d\theta
+=
+\frac{l}{2}.
+\]
+于是相交概率就是有利区域面积除以总面积：
+\[
+P(\text{cross})
+=
+\frac{A_{\text{fav}}}{A_{\text{total}}}
+=
+\frac{l/2}{\pi d/4}
+=
+\frac{2l}{\pi d}.
+\]
+在我们的 demo 里取 $l=d=1$，就得到 $P(\text{cross})=2/\pi$。这就是为什么在一个扔针问题里，最后会自然出现 pi。
+}
+
+\vfill
+\TurnCue{讲完 ``a needle-dropping problem'' 后翻到 ``Simulation Logic and One Sample Run''。}
+
+\SlideHeader{7}{Simulation Logic and One Sample Run}{Kangjun XU}{50--55 seconds}
+
+\EnglishBlock{
+Now I will explain how we turn this problem into a computational simulation. Since in our demo we fix $l=d=1$, each trial only needs two random quantities: the angle $\theta$ and the distance $x$ from the midpoint to the nearest parallel line. Then we directly use the crossing condition from the previous slide to decide whether that needle intersects a line.
+
+Instead of showing full code, we simplify the logic into pseudocode: repeat the random drop $N$ times, count the number of crossings $C$, and then compute the estimate by
+\[
+\hat{\pi}=\frac{2N}{C}.
+\]
+
+The table on the right shows one sample run with 100{,}000 trials. At 100 throws the estimate still moves around a lot, but as the number of trials grows, it gradually gets closer to the true value of pi. This is a clear illustration of the law of large numbers, where experimental results become more stable as the sample size increases.
+}
+
+\ChineseBlock{
+接下来我讲我们是怎么把这个问题做成程序模拟的。因为在 demo 里我们固定了 $l=d=1$，所以每次实验只需要随机生成两个量：一个是角度 $\theta$，另一个是中点到最近平行线的距离 $x$。然后我们直接用刚才那条相交条件去判断这一针是否相交。
+
+这里我们没有展示完整代码，而是把逻辑压缩成了伪代码：重复做 $N$ 次随机投针，统计相交次数 $C$，最后用
+\[
+\hat{\pi}=\frac{2N}{C}
+\]
+得到估计值。
+
+右边这张表给出了一次 100{,}000 次模拟的样本结果。你可以看到，在 100 次的时候估计值还比较跳动，但随着试验次数增加，它会逐渐靠近真实的 pi。这体现的就是大数定律，也就是样本数量足够大时，实验结果会越来越稳定。
+}
+
+\vfill
+\TurnCue{讲完 ``the sample size increases'' 后翻到 ``Beyond a Straight Needle''。}
+
+\SlideHeader{8}{Beyond a Straight Needle}{Zhe CAO}{35--40 seconds}
+
+\EnglishBlock{
+This problem also has a very interesting extension called Moser's curved needle. In other words, the object does not have to remain a straight segment; it can be bent into an arbitrary curve.
+
+The conclusion is that as long as the total length stays the same, and under the appropriate conditions, the expected number of intersections corresponds to the straight-needle case. In geometric probability, this suggests that what often matters is total length rather than detailed shape.
+
+The value of this idea also goes beyond estimating pi. Similar stochastic sampling ideas appear in numerical integration, and they can also be used to estimate the total length of highly tangled real-world structures such as fibres, root systems, or fungal networks.
+}
+
+\ChineseBlock{
+这个问题还有一个很有意思的推广，叫做 Moser's curved needle。也就是说，我们不一定非要用一根笔直的针，也可以把它弯成任意曲线。
+
+结论是，只要这条曲线的总长度保持不变，而且满足相应条件，它的期望相交次数和直针的情形是对应的。换句话说，在几何概率里，很多时候真正重要的是总长度，而不是具体形状。
+
+这类思想的意义也不只是在估计 pi。类似的随机采样思想还能用于数值积分，也能用于估计一些现实中非常弯曲、非常复杂结构的总长度，比如纤维、根系或者菌丝网络。
+}
+
+\vfill
+\TurnCue{讲完 ``fungal networks'' 后翻到 ``Live Web Demo''。}
+
+\SlideHeader{9}{Live Web Demo}{Xu WANG}{25--30 seconds}
+
+
+
+\vfill
+\TurnCue{建议先停留在当前页，方便观众扫码并进入 demo。}
+
+\end{document}

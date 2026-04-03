@@ -361,6 +361,19 @@ button:focus-visible {
     0 14px 34px rgba(75, 199, 255, 0.2);
 }
 
+.warning-button {
+  background: linear-gradient(135deg, rgba(244, 179, 95, 0.2), rgba(179, 63, 63, 0.22));
+  border-color: rgba(244, 179, 95, 0.24);
+  color: #ffe7c4;
+}
+
+.warning-button[data-state='invalid'] {
+  background: linear-gradient(135deg, #f4b35f 0%, #ff7f66 100%);
+  border-color: rgba(255, 162, 120, 0.34);
+  color: #08121d;
+  font-weight: 700;
+}
+
 .status-chip {
   padding: 8px 12px;
   border-radius: 999px;
@@ -398,24 +411,26 @@ button:focus-visible {
   text-align: right;
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 #estimate-note {
   transition: color 180ms ease, opacity 180ms ease;
 }
 
 #estimate-note[data-state='live'] {
   color: #d7f8ef;
+}
+
+#estimate-note[data-state='invalid'],
+.plot-note[data-state='visible'] {
+  color: #ffd4b3;
+}
+
+.plot-note {
+  margin-top: 6px;
+  min-height: 1.2em;
+}
+
+.plot-note[data-state='hidden'] {
+  opacity: 0;
 }
 
 .stats-panel {
@@ -447,6 +462,13 @@ button:focus-visible {
   letter-spacing: -0.03em;
   color: #f6fbff;
   transform-origin: left center;
+}
+
+#theoretical-probability[data-state='invalid'],
+#pi-estimate[data-state='invalid'] {
+  color: #ffd4b3;
+  font-size: clamp(1rem, 1.2vw, 1.18rem);
+  letter-spacing: -0.01em;
 }
 
 body[data-auto-state='running'] .stats-grid dd {

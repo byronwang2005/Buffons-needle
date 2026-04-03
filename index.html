@@ -101,9 +101,17 @@
               >
                 Auto Run
               </button>
+              <button
+                id="toggle-invalid-case-button"
+                class="warning-button"
+                type="button"
+                data-state="default"
+              >
+                Backdoor: l &gt; d
+              </button>
             </div>
             <p class="panel-note">
-              Setup: <strong>l = d = 1</strong>. Recent needles stay on stage;
+              Setup: <strong id="setup-emphasis">l = 1, d = 1</strong>. Recent needles stay on stage;
               totals count every throw.
             </p>
           </section>
@@ -111,7 +119,7 @@
           <section class="rail-section stats-panel">
             <p
               id="estimate-note"
-              class="panel-note inline-note sr-only"
+              class="panel-note inline-note"
               data-state="idle"
               aria-hidden="true"
             ></p>
@@ -144,6 +152,7 @@
               <div>
                 <span class="formula-title">Convergence</span>
                 <h3>Estimated π over throws</h3>
+                <p id="plot-mode-note" class="panel-note plot-note" data-state="hidden"></p>
               </div>
               <div class="legend">
                 <span class="legend-item">

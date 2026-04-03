@@ -19,8 +19,14 @@ export interface StatsSnapshot {
   totalThrows: number;
   intersectionCount: number;
   experimentalProbability: number | null;
-  theoreticalProbability: number;
+  theoreticalProbability: number | null;
   piEstimate: number | null;
+}
+
+export interface ExperimentSetup {
+  needleLength: number;
+  lineSpacing: number;
+  usesSimplifiedTheory: boolean;
 }
 
 export interface PlotSample {
@@ -34,6 +40,7 @@ export interface SimulationState {
   isAutoRunning: boolean;
   latestThrow: ThrowResult | null;
   plotSamples: PlotSample[];
+  setup: ExperimentSetup;
   stats: StatsSnapshot;
 }
 

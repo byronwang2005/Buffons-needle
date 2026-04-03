@@ -86,12 +86,15 @@ function createFixture(): void {
     <button id="drop-one-button" type="button"></button>
     <button id="drop-hundred-button" type="button"></button>
     <button id="toggle-auto-button" type="button"></button>
+    <button id="toggle-invalid-case-button" type="button"></button>
     <div id="total-throws"></div>
     <div id="intersection-count"></div>
     <div id="experimental-probability"></div>
     <div id="theoretical-probability"></div>
     <div id="pi-estimate"></div>
     <div id="estimate-note"></div>
+    <div id="plot-mode-note"></div>
+    <div id="setup-emphasis"></div>
   `;
 }
 
@@ -154,5 +157,26 @@ describe('app wiring', () => {
     expect(document.getElementById('total-throws')?.textContent).toBe('0');
     expect(document.getElementById('intersection-count')?.textContent).toBe('0');
     expect(fakeScene.resetCount).toBe(1);
+  });
+
+  it('switches to the l > d backdoor mode and marks the simplified theory invalid', () => {
+    mountBuffonApp({
+      sceneFactory: () => new FakeNeedleSink(),
+      plotFactory: () => new FakePlotSink(),
+      scheduler: new FakeScheduler(),
+    });
+
+    const modeButton = document.getElementById(
+      'toggle-invalid-case-button',
+    ) as HTMLButtonElement;
+    modeButton.click();
+
+    expect(document.getElementById('setup-emphasis')?.textContent).toContain('l = 1.25, d = 1');
+    expect(document.getElementById('theoretical-probability')?.textContent).toContain(
+      'not valid',
+    );
+    expect(document.getElementById('pi-estimate')?.textContent).toBe('Not available');
+    expect(document.getElementById('estimate-note')?.textContent).toContain('l > d');
+    expect(modeButton.getAttribute('aria-pressed')).toBe('true');
   });
 });

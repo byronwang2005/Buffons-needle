@@ -20,6 +20,7 @@ describe('index layout shell', () => {
       'drop-one-button',
       'drop-hundred-button',
       'toggle-auto-button',
+      'toggle-invalid-case-button',
       'auto-indicator',
       'total-throws',
       'intersection-count',
@@ -27,6 +28,8 @@ describe('index layout shell', () => {
       'theoretical-probability',
       'pi-estimate',
       'estimate-note',
+      'plot-mode-note',
+      'setup-emphasis',
     ]) {
       expect(html).toContain(`id="${id}"`);
     }

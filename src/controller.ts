@@ -2,9 +2,12 @@ import {
   appendPlotSample,
   buildStats,
   createThrowResult,
+  DEFAULT_EXPERIMENT_SETUP,
+  LONG_NEEDLE_EXPERIMENT_SETUP,
   maybeCreatePlotSample,
 } from './simulation';
 import type {
+  ExperimentSetup,
   FrameScheduler,
   NeedleSink,
   PlotSample,
@@ -42,6 +45,8 @@ export class BuffonController {
 
   private latestThrow: ThrowResult | null = null;
 
+  private setup: ExperimentSetup = DEFAULT_EXPERIMENT_SETUP;
+
   private isAutoRunning = false;
 
   private frameId: number | null = null;
@@ -72,7 +77,8 @@ export class BuffonController {
       isAutoRunning: this.isAutoRunning,
       latestThrow: this.latestThrow,
       plotSamples: this.plotSamples,
-      stats: buildStats(this.totalThrows, this.intersectionCount),
+      setup: this.setup,
+      stats: buildStats(this.totalThrows, this.intersectionCount, this.setup),
     };
   }
 
@@ -89,7 +95,7 @@ export class BuffonController {
         : 0;
 
     for (let index = 0; index < count; index += 1) {
-      const result = createThrowResult(this.totalThrows + 1, bounds);
+      const result = createThrowResult(this.totalThrows + 1, bounds, this.setup);
       this.totalThrows += 1;
       this.intersectionCount += Number(result.intersects);
       this.latestThrow = result;
@@ -99,6 +105,7 @@ export class BuffonController {
         this.totalThrows,
         this.intersectionCount,
         lastRecordedThrowCount,
+        this.setup,
       );
 
       if (sample) {
@@ -120,6 +127,15 @@ export class BuffonController {
     this.adaptiveBatchSize = 24;
     this.needleSink.reset();
     this.emitState();
+  }
+
+  setLongNeedleMode(enabled: boolean): void {
+    this.setup = enabled ? LONG_NEEDLE_EXPERIMENT_SETUP : DEFAULT_EXPERIMENT_SETUP;
+    this.reset();
+  }
+
+  toggleLongNeedleMode(): void {
+    this.setLongNeedleMode(this.setup.needleLength <= this.setup.lineSpacing);
   }
 
   toggleAuto(): void {

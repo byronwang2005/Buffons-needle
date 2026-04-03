@@ -1,9 +1,25 @@
-import type { PlotSample, StatsSnapshot, ThrowResult, WorldBounds } from './types';
+import type {
+  ExperimentSetup,
+  PlotSample,
+  StatsSnapshot,
+  ThrowResult,
+  WorldBounds,
+} from './types';
 
 export const LINE_SPACING = 1;
 export const NEEDLE_LENGTH = 1;
 export const HALF_NEEDLE = NEEDLE_LENGTH / 2;
 export const THEORETICAL_PROBABILITY = 2 / Math.PI;
+export const DEFAULT_EXPERIMENT_SETUP: ExperimentSetup = {
+  needleLength: NEEDLE_LENGTH,
+  lineSpacing: LINE_SPACING,
+  usesSimplifiedTheory: true,
+};
+export const LONG_NEEDLE_EXPERIMENT_SETUP: ExperimentSetup = {
+  needleLength: 1.25,
+  lineSpacing: LINE_SPACING,
+  usesSimplifiedTheory: false,
+};
 
 const EPSILON = 1e-9;
 const MAX_PLOT_SAMPLES = 2400;
@@ -43,33 +59,41 @@ export function doesNeedleIntersect(
 export function createThrowResult(
   id: number,
   bounds: WorldBounds,
+  setup: ExperimentSetup = DEFAULT_EXPERIMENT_SETUP,
   rng: () => number = Math.random,
 ): ThrowResult {
   const x = bounds.left + rng() * (bounds.right - bounds.left);
   const y = bounds.bottom + rng() * (bounds.top - bounds.bottom);
   const angle = rng() * Math.PI;
-  const intersects = doesNeedleIntersect(y, angle);
+  const intersects = doesNeedleIntersect(y, angle, setup.needleLength, setup.lineSpacing);
 
   return {
     id,
     midpoint: { x, y },
     angle,
     intersects,
-    nearestLineDistance: distanceToNearestLine(y),
-    endpoints: computeNeedleEndpoints(x, y, angle),
+    nearestLineDistance: distanceToNearestLine(y, setup.lineSpacing),
+    endpoints: computeNeedleEndpoints(x, y, angle, setup.needleLength),
   };
 }
 
-export function buildStats(totalThrows: number, intersectionCount: number): StatsSnapshot {
+export function buildStats(
+  totalThrows: number,
+  intersectionCount: number,
+  setup: ExperimentSetup = DEFAULT_EXPERIMENT_SETUP,
+): StatsSnapshot {
   const experimentalProbability =
     totalThrows > 0 ? intersectionCount / totalThrows : null;
-  const piEstimate = intersectionCount > 0 ? (2 * totalThrows) / intersectionCount : null;
+  const piEstimate =
+    setup.usesSimplifiedTheory && intersectionCount > 0
+      ? (2 * totalThrows) / intersectionCount
+      : null;
 
   return {
     totalThrows,
     intersectionCount,
     experimentalProbability,
-    theoreticalProbability: THEORETICAL_PROBABILITY,
+    theoreticalProbability: setup.usesSimplifiedTheory ? THEORETICAL_PROBABILITY : null,
     piEstimate,
   };
 }
@@ -105,7 +129,12 @@ export function maybeCreatePlotSample(
   totalThrows: number,
   intersectionCount: number,
   lastRecordedThrowCount: number,
+  setup: ExperimentSetup = DEFAULT_EXPERIMENT_SETUP,
 ): PlotSample | null {
+  if (!setup.usesSimplifiedTheory) {
+    return null;
+  }
+
   if (intersectionCount === 0) {
     return null;
   }

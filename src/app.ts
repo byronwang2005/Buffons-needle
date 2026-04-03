@@ -59,13 +59,19 @@ function setTextContent(element: HTMLElement, nextText: string, shouldPulse = fa
 }
 
 function renderState(state: SimulationState): void {
+  const isSimplifiedTheoryValid = state.setup.usesSimplifiedTheory;
+  const setupLabel = `l = ${decimalFormatter.format(state.setup.needleLength)}, d = ${decimalFormatter.format(
+    state.setup.lineSpacing,
+  )}`;
   const totalThrowsLabel = integerFormatter.format(state.totalThrows);
   const intersectionLabel = integerFormatter.format(state.intersectionCount);
   const experimentalProbabilityLabel = formatNullable(state.stats.experimentalProbability);
-  const theoreticalProbabilityLabel = `2 / π ≈ ${decimalFormatter.format(
-    THEORETICAL_PROBABILITY,
-  )}`;
-  const piEstimateLabel = formatNullable(state.stats.piEstimate);
+  const theoreticalProbabilityLabel = isSimplifiedTheoryValid
+    ? `2 / π ≈ ${decimalFormatter.format(THEORETICAL_PROBABILITY)}`
+    : 'Current l ≤ d formula is not valid for l > d';
+  const piEstimateLabel = isSimplifiedTheoryValid
+    ? formatNullable(state.stats.piEstimate)
+    : 'Not available';
   const autoState = state.isAutoRunning ? 'running' : 'paused';
 
   setTextContent(
@@ -87,8 +93,13 @@ function renderState(state: SimulationState): void {
   setTextContent(
     byId<HTMLElement>('pi-estimate'),
     piEstimateLabel,
-    state.stats.piEstimate !== null,
+    isSimplifiedTheoryValid && state.stats.piEstimate !== null,
   );
+  byId<HTMLElement>('theoretical-probability').dataset.state = isSimplifiedTheoryValid
+    ? 'valid'
+    : 'invalid';
+  byId<HTMLElement>('pi-estimate').dataset.state = isSimplifiedTheoryValid ? 'valid' : 'invalid';
+  setTextContent(byId<HTMLElement>('setup-emphasis'), setupLabel);
 
   const autoIndicator = byId<HTMLElement>('auto-indicator');
   setTextContent(autoIndicator, state.isAutoRunning ? 'Running' : 'Paused');
@@ -101,11 +112,33 @@ function renderState(state: SimulationState): void {
 
   const estimateNote = document.getElementById('estimate-note');
   if (estimateNote) {
-    setTextContent(estimateNote, '');
-    estimateNote.dataset.state = state.stats.piEstimate === null ? 'idle' : 'live';
+    setTextContent(
+      estimateNote,
+      isSimplifiedTheoryValid
+        ? ''
+        : 'Backdoor mode: when l > d, the simplified l ≤ d derivation and π estimator on this page no longer apply.',
+    );
+    estimateNote.dataset.state =
+      !isSimplifiedTheoryValid ? 'invalid' : state.stats.piEstimate === null ? 'idle' : 'live';
+    estimateNote.setAttribute('aria-hidden', String(isSimplifiedTheoryValid));
   }
 
+  const modeButton = byId<HTMLButtonElement>('toggle-invalid-case-button');
+  setTextContent(modeButton, isSimplifiedTheoryValid ? 'Backdoor: l > d' : 'Back to l ≤ d');
+  modeButton.dataset.state = isSimplifiedTheoryValid ? 'default' : 'invalid';
+  modeButton.setAttribute('aria-pressed', String(!isSimplifiedTheoryValid));
+
+  const plotNote = byId<HTMLElement>('plot-mode-note');
+  setTextContent(
+    plotNote,
+    isSimplifiedTheoryValid
+      ? ''
+      : 'π convergence is hidden here because this demo only derives π from the l ≤ d case.',
+  );
+  plotNote.dataset.state = isSimplifiedTheoryValid ? 'hidden' : 'visible';
+
   document.body.dataset.autoState = autoState;
+  document.body.dataset.theoryMode = isSimplifiedTheoryValid ? 'valid' : 'invalid';
 }
 
 export function mountBuffonApp(options: AppOptions = {}): BuffonController {
@@ -131,6 +164,9 @@ export function mountBuffonApp(options: AppOptions = {}): BuffonController {
   });
   byId<HTMLButtonElement>('toggle-auto-button').addEventListener('click', () => {
     controller.toggleAuto();
+  });
+  byId<HTMLButtonElement>('toggle-invalid-case-button').addEventListener('click', () => {
+    controller.toggleLongNeedleMode();
   });
 
   window.addEventListener('beforeunload', () => {

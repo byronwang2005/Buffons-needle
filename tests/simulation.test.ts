@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  LONG_NEEDLE_EXPERIMENT_SETUP,
   THEORETICAL_PROBABILITY,
   buildStats,
   createThrowResult,
@@ -42,13 +43,21 @@ describe('simulation math', () => {
       theoreticalProbability: THEORETICAL_PROBABILITY,
       piEstimate: (2 * 120) / 77,
     });
+
+    expect(buildStats(120, 77, LONG_NEEDLE_EXPERIMENT_SETUP)).toEqual({
+      totalThrows: 120,
+      intersectionCount: 77,
+      experimentalProbability: 77 / 120,
+      theoreticalProbability: null,
+      piEstimate: null,
+    });
   });
 
   it('creates deterministic throws inside the current world bounds', () => {
     const bounds: WorldBounds = { left: -2, right: 2, top: 1, bottom: -1 };
     const values = [0.25, 0.9, 0.5];
     let index = 0;
-    const result = createThrowResult(1, bounds, () => values[index++] ?? 0.5);
+    const result = createThrowResult(1, bounds, undefined, () => values[index++] ?? 0.5);
 
     expect(result.midpoint.x).toBeCloseTo(-1);
     expect(result.midpoint.y).toBeCloseTo(0.8);
