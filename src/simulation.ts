@@ -24,6 +24,28 @@ export const LONG_NEEDLE_EXPERIMENT_SETUP: ExperimentSetup = {
 const EPSILON = 1e-9;
 const MAX_PLOT_SAMPLES = 2400;
 
+export function computeTheoreticalProbability(
+  setup: ExperimentSetup = DEFAULT_EXPERIMENT_SETUP,
+): number {
+  const ratio = setup.needleLength / setup.lineSpacing;
+
+  if (ratio <= 1) {
+    return (2 * ratio) / Math.PI;
+  }
+
+  return (
+    (2 / Math.PI) *
+    (ratio - Math.sqrt(ratio * ratio - 1) + Math.acos(1 / ratio))
+  );
+}
+
+export function computeShortNeedlePiEstimate(
+  totalThrows: number,
+  intersectionCount: number,
+): number | null {
+  return intersectionCount > 0 ? (2 * totalThrows) / intersectionCount : null;
+}
+
 export function distanceToNearestLine(y: number, lineSpacing = LINE_SPACING): number {
   const nearestLine = Math.round(y / lineSpacing) * lineSpacing;
   return Math.abs(y - nearestLine);
@@ -84,16 +106,13 @@ export function buildStats(
 ): StatsSnapshot {
   const experimentalProbability =
     totalThrows > 0 ? intersectionCount / totalThrows : null;
-  const piEstimate =
-    setup.usesSimplifiedTheory && intersectionCount > 0
-      ? (2 * totalThrows) / intersectionCount
-      : null;
+  const piEstimate = computeShortNeedlePiEstimate(totalThrows, intersectionCount);
 
   return {
     totalThrows,
     intersectionCount,
     experimentalProbability,
-    theoreticalProbability: setup.usesSimplifiedTheory ? THEORETICAL_PROBABILITY : null,
+    theoreticalProbability: computeTheoreticalProbability(setup),
     piEstimate,
   };
 }
@@ -129,12 +148,8 @@ export function maybeCreatePlotSample(
   totalThrows: number,
   intersectionCount: number,
   lastRecordedThrowCount: number,
-  setup: ExperimentSetup = DEFAULT_EXPERIMENT_SETUP,
+  _setup: ExperimentSetup = DEFAULT_EXPERIMENT_SETUP,
 ): PlotSample | null {
-  if (!setup.usesSimplifiedTheory) {
-    return null;
-  }
-
   if (intersectionCount === 0) {
     return null;
   }
@@ -145,7 +160,7 @@ export function maybeCreatePlotSample(
 
   return {
     throwCount: totalThrows,
-    piEstimate: (2 * totalThrows) / intersectionCount,
+    piEstimate: computeShortNeedlePiEstimate(totalThrows, intersectionCount) ?? 0,
   };
 }
 

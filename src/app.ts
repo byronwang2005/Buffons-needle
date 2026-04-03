@@ -68,10 +68,8 @@ function renderState(state: SimulationState): void {
   const experimentalProbabilityLabel = formatNullable(state.stats.experimentalProbability);
   const theoreticalProbabilityLabel = isSimplifiedTheoryValid
     ? `2 / π ≈ ${decimalFormatter.format(THEORETICAL_PROBABILITY)}`
-    : 'Current l ≤ d formula is not valid for l > d';
-  const piEstimateLabel = isSimplifiedTheoryValid
-    ? formatNullable(state.stats.piEstimate)
-    : 'Not available';
+    : decimalFormatter.format(state.stats.theoreticalProbability);
+  const piEstimateLabel = formatNullable(state.stats.piEstimate);
   const autoState = state.isAutoRunning ? 'running' : 'paused';
 
   setTextContent(
@@ -93,7 +91,7 @@ function renderState(state: SimulationState): void {
   setTextContent(
     byId<HTMLElement>('pi-estimate'),
     piEstimateLabel,
-    isSimplifiedTheoryValid && state.stats.piEstimate !== null,
+    state.stats.piEstimate !== null,
   );
   byId<HTMLElement>('theoretical-probability').dataset.state = isSimplifiedTheoryValid
     ? 'valid'
@@ -116,7 +114,7 @@ function renderState(state: SimulationState): void {
       estimateNote,
       isSimplifiedTheoryValid
         ? ''
-        : 'Backdoor mode: when l > d, the simplified l ≤ d derivation and π estimator on this page no longer apply.',
+        : 'Backdoor mode: theoretical probability now uses the long-needle formula, while Estimated π still uses 2N/C, so it should not converge to π.',
     );
     estimateNote.dataset.state =
       !isSimplifiedTheoryValid ? 'invalid' : state.stats.piEstimate === null ? 'idle' : 'live';
@@ -133,7 +131,7 @@ function renderState(state: SimulationState): void {
     plotNote,
     isSimplifiedTheoryValid
       ? ''
-      : 'π convergence is hidden here because this demo only derives π from the l ≤ d case.',
+      : 'The cyan curve is still the naive 2N/C estimate, so in l > d mode it drifts away from π instead of converging to it.',
   );
   plotNote.dataset.state = isSimplifiedTheoryValid ? 'hidden' : 'visible';
 

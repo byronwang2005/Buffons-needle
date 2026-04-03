@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  computeTheoreticalProbability,
   LONG_NEEDLE_EXPERIMENT_SETUP,
   THEORETICAL_PROBABILITY,
   buildStats,
@@ -48,8 +49,8 @@ describe('simulation math', () => {
       totalThrows: 120,
       intersectionCount: 77,
       experimentalProbability: 77 / 120,
-      theoreticalProbability: null,
-      piEstimate: null,
+      theoreticalProbability: computeTheoreticalProbability(LONG_NEEDLE_EXPERIMENT_SETUP),
+      piEstimate: (2 * 120) / 77,
     });
   });
 

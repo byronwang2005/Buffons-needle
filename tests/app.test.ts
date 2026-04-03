@@ -172,11 +172,11 @@ describe('app wiring', () => {
     modeButton.click();
 
     expect(document.getElementById('setup-emphasis')?.textContent).toContain('l = 1.25, d = 1');
-    expect(document.getElementById('theoretical-probability')?.textContent).toContain(
+    expect(document.getElementById('theoretical-probability')?.textContent).not.toContain(
       'not valid',
     );
-    expect(document.getElementById('pi-estimate')?.textContent).toBe('Not available');
-    expect(document.getElementById('estimate-note')?.textContent).toContain('l > d');
+    expect(document.getElementById('pi-estimate')?.textContent).not.toBe('Not available');
+    expect(document.getElementById('estimate-note')?.textContent).toContain('2N/C');
     expect(modeButton.getAttribute('aria-pressed')).toBe('true');
   });
 });
